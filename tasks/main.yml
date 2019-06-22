@@ -1,0 +1,134 @@
+---
+
+- name: Disable IPv6 with sysctl
+  sysctl: name={{ item }} value=1 state=present
+  with_items:
+    - net.ipv6.conf.all.disable_ipv6
+    - net.ipv6.conf.default.disable_ipv6
+    - net.ipv6.conf.lo.disable_ipv6
+
+- name: Running Sysctl -P
+  command: sysctl -p
+
+- name: Disable SELINUX
+  selinux:
+    state: disabled
+
+- name: update the system
+  yum:
+    name: "*"
+    state: latest
+
+- name: Install necessary packages
+  yum:
+    name: "{{ item }}"
+  with_items:
+    - wget
+    - python2-pip
+    - pexpect
+    - java-1.8.0-openjdk.x86_64
+
+- name: create directory if they don't exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /u01
+    - /tmp/tableau
+    - /tmp/tableau/downloads/redhat
+    - /tmp/tableau/wget_files
+    - /tmp/tableau/debian
+
+- name: Copy multiple files in Ansible with different permissions
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{item.mode}}"
+  with_items:
+    - { src: 'files/redhat',dest: '/tmp/tableau', mode: '0777'}
+  tags: [ copy_files ]
+
+#- name: Add local user 'admserv.tableau'
+#  user:
+#    name: admserv.tableau
+#    shell: /bin/bash
+#    password: $1$xQKCTLyE$fwNBOWwmHj.OrNs0tGxhy0
+#    comment: local account for tableau
+#    groups: users
+
+- name: Download List Files of Tableau
+  shell: cd '{{ redhat_dir }}' && wget -nc -i '{{ v_2019_2 }}' && md5sum -c '{{ md5_dir }}'/*.md5
+  ignore_errors: True
+
+- name: Download PostgreSQL Driver
+  get_url:
+    url: '{{ driver_PostgreSQL }}'
+    dest: '{{ redhat_dir }}'
+    checksum: md5:19b9c6734a89a914ed5fdd39c14a6a39
+
+- name: Download MySQL Driver
+  get_url:
+    url: '{{ driver_SQL_Server }}'
+    dest: '{{ redhat_dir }}'
+    checksum: md5:b757e338387bbdbc28b553591f38c786
+
+- name: Install Drivers MySQL, PostgreSQL and Microsoft SQL Server for Tableu
+  yum:
+    name:
+      - mysql-connector-odbc.x86_64
+      - '{{ rpm_driver_PostgreSQL }}'
+      - '{{ rpm_driver_SQL_Server }}'
+    state: present
+
+- name: Insert libmyodbc5w.so inside file /etc/odbcinst.ini
+  blockinfile:
+    dest: /etc/odbcinst.ini
+    block: |
+      [MySQL ODBC 5.3 Unicode Driver]
+      Driver=/usr/lib64/libmyodbc5w.so
+      UsageCount=1
+
+- name: Install tabcmd
+  yum:
+    name: '{{ rpm_tabcmd_v_2019_2 }}'
+    state: present
+
+- name: Install tableau server
+  yum:
+    name: '{{ rpm_tabserver_v_2019_2 }}'
+    state: present
+
+- name: TSM Initialization
+  command: /opt/tableau/tableau_server/packages/scripts.20192.19.0518.0639/initialize-tsm --accepteula -d /u01/tableau_srv -a admserv.tableau
+
+- name: Activation_Fase_1
+  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm login -u '{{ user }}' --password '{{ user_password }}'
+
+- name: Activation_Fase_2
+  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm licenses activate -t
+# command: /opt/tableau/tableau_server/packages/'{{ 20191 }}'/tsm licenses activate --license-key '{{ license_file }}'
+
+- name: Activation_Fase_3
+  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm register --file '{{ reg_info }}'
+
+- name: reg_identifyStoreType
+  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm settings import -f '{{ reg_identifyStoreType }}'
+  ignore_errors: yes
+
+- name: Enable healthcheck
+  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm configuration set -u '{{ user }}' --password '{{ user_password }}' -k wgserver.systeminfo.allow_referrer_ips -v '{{ allow_ip_healtcheck }}'
+
+- name: Apply Configuration
+  expect:
+    command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm pending-changes apply
+    responses:
+      (?i)This operation will perform a server restart. Are you sure you wish to continue?: 'y'
+    echo: yes
+    timeout: 180
+
+- name: Start Server - Last Activation Fase
+  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm initialize --start-server --request-timeout 1800
+
+- name: Create Admin Server Manager Account for user " infrastructure "
+  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tabcmd initialuser --server 'localhost:80' --username 'infrastructure' --password '{{ user_infrastructure_pwd }}'
+  tags: [ finish ]

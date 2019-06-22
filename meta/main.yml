@@ -1,0 +1,22 @@
+---
+dependencies: []
+
+galaxy_info:
+  author: servslack
+  description: Tableau installation for Linux.
+  company: "Looking For"
+  license: "license (BSD, MIT)"
+  min_ansible_version: 2.2
+  platforms:
+    - name: EL
+      versions:
+        - 7
+#    - name: Debian
+#      versions:
+#        - all
+#    - name: Ubuntu
+#      versions:
+#        - trusty
+#        - xenial
+  galaxy_tags:
+    - tableau_installation
