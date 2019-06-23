@@ -19,4 +19,4 @@ galaxy_info:
 #        - trusty
 #        - xenial
   galaxy_tags:
-    - tableausrv
+    - install_tableau
