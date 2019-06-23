@@ -34,6 +34,7 @@
     state: directory
   with_items:
     - /u01
+    - /u01/tableau_srv
     - /tmp/tableau
     - /tmp/tableau/downloads/redhat
     - /tmp/tableau/wget_files
@@ -43,18 +44,9 @@
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    mode: "{{item.mode}}"
+    mode: "{{ item.mode }}"
   with_items:
-    - { src: 'files/redhat',dest: '/tmp/tableau', mode: '0777'}
-  tags: [ copy_files ]
-
-#- name: Add local user 'admserv.tableau'
-#  user:
-#    name: admserv.tableau
-#    shell: /bin/bash
-#    password: $1$xQKCTLyE$fwNBOWwmHj.OrNs0tGxhy0
-#    comment: local account for tableau
-#    groups: users
+    - { src: 'files/redhat', dest: '/tmp/tableau', mode: '0777'}
 
 - name: Download List Files of Tableau
   shell: cd '{{ redhat_dir }}' && wget -nc -i '{{ v_2019_2 }}' && md5sum -c '{{ md5_dir }}'/*.md5
@@ -131,4 +123,3 @@
 
 - name: Create Admin Server Manager Account for user " infrastructure "
   command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tabcmd initialuser --server 'localhost:80' --username 'infrastructure' --password '{{ user_infrastructure_pwd }}'
-  tags: [ finish ]
