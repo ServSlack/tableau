@@ -12,7 +12,7 @@ openssl passwd -1 P@ssword2019
 
 # Create a playbook and paste the bellow content:
 ----------------
-Example Playbook
+Example Playbook:
 
 In this case default password for "admserv.tableau" is "P@sswprd2019"
 
@@ -49,7 +49,7 @@ In this case default password for "admserv.tableau" is "P@sswprd2019"
 # Activate Trial
   command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm licenses activate -t
 # Activate Tableau License
-# command: /opt/tableau/tableau_server/packages/'{{ 20191 }}'/tsm licenses activate --license-key '{{ license_file }}'
+ command: /opt/tableau/tableau_server/packages/'{{ 20191 }}'/tsm licenses activate --license-key '{{ license_file }}'
 
 ================
 
@@ -72,6 +72,7 @@ user_infrastructure_pwd: P@ssword2019
 # Only if you have an Tableau License:
 ansible-vault create tableau_files/secret_tableau_license_file.yml
 # Content tableau_files/secret_tableau_license_file.yml:
+
 ---
 license_file: P@ssword2019
 
