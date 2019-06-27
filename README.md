@@ -59,6 +59,8 @@ In this case default password for "admserv.tableau" is "P@sswprd2019"
 ================
 
 #
+# I REALLY ADVISE YOU TO CHANGE THIS DEFAUL PASSWORD : ) 
+#
 # Create a vault password for admserv.tableau
 #
 # Inside Ansible directory, create a folder asked " tableau_files "
