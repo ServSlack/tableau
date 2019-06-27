@@ -81,6 +81,11 @@ ansible-vault create tableau_files/secret_tableau_license_file.yml
 ---
 license_file: P@ssword2019
 
+================
+
+ACTIVATION FASE:
+
+The Activation fase will take a long time, but you can follow step by step across URL " https://tableau:8850 ". Login with user " admserv.tableau " and the default password " P@ssword2019 " or using your password if you follow the steps to create them.
 
 ================
 License: "license (BSD, MIT)"
