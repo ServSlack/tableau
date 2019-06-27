@@ -5,7 +5,12 @@ This role can be used to easy install Tableau Server.
 
 Requirements:
 ------------
-This role need and will install " wget ".
+This will install those packages below to work properly:
+  - wget
+  - java-1.8.0-openjdk.x86_64
+  - python2-pip
+  - pexpect
+  - pip
 
 # Create a password hash using the follow command:
 openssl passwd -1 P@ssword2019
