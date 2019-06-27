@@ -1,16 +1,15 @@
 ---
 # defaults file for servslack_tableau-installation
+
+epel_repo_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+epel_repo_gpg_key_url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+epel_repofile_path: "/etc/yum.repos.d/epel.repo"
 user: "admserv.tableau"
 reg_info: "/tmp/tableau/redhat/register_info.json"
 reg_identifyStoreType: "/tmp/tableau/redhat/register_identifyStoreType_local.json"
 redhat_dir: "/tmp/tableau/downloads/redhat"
 md5_dir: "/tmp/tableau/redhat/md5"
-v_2019_all: "/tmp/tableau/redhat/wget_files/tableau_2019_all"
 v_2019_2: "/tmp/tableau/redhat/wget_files/tableau_2019_2"
-v_2019_1_4: "/tmp/tableau/redhat/wget_files/tableau_2019_1_4"
-v_2019_1_3: "/tmp/tableau/redhat/wget_files/tableau_2019_1_3"
-v_2019_1_2: "/tmp/tableau/redhat/wget_files/tableau_2019_1_2"
-v20191: "customer-bin.20191.19.0321.1733"
 v20192: "customer-bin.20192.19.0518.0639"
 rpm_tabcmd_v_2019_2: "/tmp/tableau/downloads/redhat/tableau-tabcmd-2019-2-0.noarch.rpm"
 rpm_tabserver_v_2019_2: "/tmp/tableau/downloads/redhat/tableau-server-2019-2-0.x86_64.rpm"

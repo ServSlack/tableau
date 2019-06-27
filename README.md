@@ -38,7 +38,7 @@ In this case default password for "admserv.tableau" is "P@sswprd2019"
     - tableau_files/secret_pwd_infraestructure.yml   # Password vault for user " infraestructure "
 
   roles:
-    - {role: 'servslack_tableau-installation', tags: 'tableau_installation'}
+    - {role: 'servslack_tableau-installation'}
 
 ----------------
 

@@ -14,31 +14,78 @@
   selinux:
     state: disabled
 
+- name: Stop and disable firewalld.
+  service:
+    name: firewalld
+    state: stopped
+    enabled: False
+  tags: [ disable_firewalld ]
+
 - name: update the system
   yum:
     name: "*"
     state: latest
 
+- name: 1.Check if EPEL repo is already configured.
+  stat: path={{ epel_repofile_path }}
+  register: epel_repofile_result
+
+- name: 2.Install EPEL repo.
+  yum:
+    name: "{{ epel_repo_url }}"
+    state: present
+  register: result
+  when: not epel_repofile_result.stat.exists
+
+- name: 3.Import EPEL GPG key.
+  rpm_key:
+    key: "{{ epel_repo_gpg_key_url }}"
+    state: present
+  when: not epel_repofile_result.stat.exists
+
 - name: Install necessary packages
   yum:
     name: "{{ item }}"
+    enablerepo: "base,epel"
+    state: latest
   with_items:
     - wget
-    - python2-pip
-    - pexpect
     - java-1.8.0-openjdk.x86_64
+    - python2-pip
+
+- name: install the package, force upgrade
+  pip:
+    name: "{{ item }}"
+    state: present
+    extra_args: --upgrade
+  with_items:
+    - pexpect
+    - pip
+
+- name: Ensure group "tableau" exist
+  group:
+    name: tableau
+    state: present
+  tags: [ group ]
+
+- name:
+  user:
+    name: tableau
+    group: tableau
+  tags: [ user ]
 
 - name: create directory if they don't exist
   file:
     path: "{{ item }}"
     state: directory
+    owner: tableau
+    group: tableau
   with_items:
     - /u01
-    - /u01/tableau_srv
     - /tmp/tableau
     - /tmp/tableau/downloads/redhat
     - /tmp/tableau/wget_files
-    - /tmp/tableau/debian
+  tags: [ dir ]
 
 - name: Copy multiple files in Ansible with different permissions
   copy:
@@ -80,15 +127,13 @@
       Driver=/usr/lib64/libmyodbc5w.so
       UsageCount=1
 
-- name: Install tabcmd
+- name: Install tabcmd and tabserver
   yum:
-    name: '{{ rpm_tabcmd_v_2019_2 }}'
+    name:
+      - '{{ rpm_tabcmd_v_2019_2 }}'
+      - '{{ rpm_tabserver_v_2019_2 }}'
     state: present
-
-- name: Install tableau server
-  yum:
-    name: '{{ rpm_tabserver_v_2019_2 }}'
-    state: present
+  tags: [ rpm ]
 
 - name: TSM Initialization
   command: /opt/tableau/tableau_server/packages/scripts.20192.19.0518.0639/initialize-tsm --accepteula -d /u01/tableau_srv -a admserv.tableau
@@ -119,7 +164,8 @@
     timeout: 180
 
 - name: Start Server - Last Activation Fase
-  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm initialize --start-server --request-timeout 1800
+  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm initialize --start-server
+#  command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tsm initialize --start-server  --request-timeout 1800
 
 - name: Create Admin Server Manager Account for user " infrastructure "
   command: /opt/tableau/tableau_server/packages/'{{ v20192 }}'/tabcmd initialuser --server 'localhost:80' --username 'infrastructure' --password '{{ user_infrastructure_pwd }}'
